@@ -1,0 +1,16 @@
+[
+  {
+    "user_id": 12345,
+    "user_voc": {
+      "stone": [
+        "kamen",
+        "Use this stone carefully"
+      ]
+    }
+  },
+  {
+    "user_id": 1735217600,
+    "in_game": false,
+    "voc": {}
+  }
+]
