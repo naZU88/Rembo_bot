@@ -11,6 +11,19 @@
   {
     "user_id": 1735217600,
     "in_game": false,
-    "voc": {}
+    "voc": {
+      "use": [
+        "using",
+        0
+      ],
+      "help": [
+        "helping",
+        0
+      ],
+      "save": [
+        "saver",
+        0
+      ]
+    }
   }
 ]
