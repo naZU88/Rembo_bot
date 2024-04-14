@@ -165,18 +165,18 @@ async def process_name_sent(message: Message, state: FSMContext):
 
 
 
-# Этот хэндлер будет срабатывать на команду "/quit" в состоянии
+# Этот хэндлер будет срабатывать на команду "/q" в состоянии
 # по умолчанию
-@router.message(Command(commands='quit'), StateFilter(default_state))
+@router.message(Command(commands='q'), StateFilter(default_state))
 async def process_quit_command(message: Message):
     await message.answer(
-        text='You are not in quiz now'
+        text='You are not in any state now.'
     )
 
 
-# Этот хэндлер будет срабатывать на команду "/quit" в любых состояниях,
+# Этот хэндлер будет срабатывать на команду "/q" в любых состояниях,
 # кроме состояния по умолчанию
-@router.message(Command(commands='quit'), ~StateFilter(default_state))
+@router.message(Command(commands='q'), ~StateFilter(default_state))
 async def process_quit_command_state(message: Message, state: FSMContext):
     await message.answer(
         text='You left the state.\n'
@@ -185,9 +185,11 @@ async def process_quit_command_state(message: Message, state: FSMContext):
     await state.clear()
 
 
+
 # Этот хэндлер будет срабатывать на на команду "/rembo"
 @router.message(Command(commands='rembo'), StateFilter(default_state))
 async def process_rembo_answer(message: Message, state: FSMContext):
+    global CURRENT_WORD_ID
     with open('tg_bot_tamplate/data/users_data.json') as file:
         data = json.load(file)
     for user in data:
@@ -206,20 +208,32 @@ async def process_rembo_answer(message: Message, state: FSMContext):
 # Этот хэндлер будет срабатывать на отправку пользователем yes, no, finish
 @router.message(StateFilter(FSMFillForm.in_quiz), lambda x: x.text and x.text in ['yes', 'no', 'finish'])
 async def process_numbers_answer(message: Message, state: FSMContext):
+    global CURRENT_WORD_ID
     with open('tg_bot_tamplate/data/users_data.json') as file:
         data = json.load(file)
     for user in data:
         if user["user_id"] == message.from_user.id:
+            words = list(user["voc"].keys())
             if message.text=='yes':
-                user["voc"][CURRENT_WORD_ID][-1] += 1
-                CURRENT_WORD_ID -= 1
-                with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=2)
+                if abs(CURRENT_WORD_ID) < len(words):
+                    user["voc"][words[CURRENT_WORD_ID]][-1] += 1
+                    CURRENT_WORD_ID -= 1
+                    with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                            json.dump(data, f, indent=2)
+                    await message.answer(text=f"{words[CURRENT_WORD_ID]}", reply_markup=yes_no_quit_keyboard)
+                else:
+                    await message.answer('Your list is over. You finished the game. If you want to continue - send /rembo.')
+                    await state.clear()
             elif message.text=='no':
-                user["voc"][CURRENT_WORD_ID][-1] -= 1
-                CURRENT_WORD_ID -= 1
-                with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=2)
+                if abs(CURRENT_WORD_ID) < len(words):
+                    user["voc"][words[CURRENT_WORD_ID]][-1] -= 1
+                    CURRENT_WORD_ID -= 1
+                    with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                            json.dump(data, f, indent=2)
+                    await message.answer(text=f"{words[CURRENT_WORD_ID]}", reply_markup=yes_no_quit_keyboard)
+                else:
+                    await message.answer('Your list is over. You finished the game. If you want to continue - send /rembo.')
+                    await state.clear()
             else:
                 await message.answer(
                     'You finished the game. Congratulations! Hold the cat!'

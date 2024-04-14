@@ -30,8 +30,6 @@ async def main() -> None:
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(storage=storage)
 
-
-
     # Регистриуем роутеры в диспетчере
     dp.include_router(user_handlers.router)
 
