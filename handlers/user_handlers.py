@@ -24,7 +24,7 @@ class FSMFillForm(StatesGroup):
 # Этот хэндлер будет срабатывать на команду "/start"
 @router.message(CommandStart(), StateFilter(default_state))
 async def process_start_command(message: Message):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     users_id = [id['user_id'] for id in data]
     if message.from_user.id not in users_id:
@@ -33,7 +33,7 @@ async def process_start_command(message: Message):
             'voc' : {}
         }
         data.append(new_user)
-        with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+        with open('data/users_data.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
     await message.answer(
         'Hi!\nI am a bot named Rembo!\n\n'
@@ -43,7 +43,7 @@ async def process_start_command(message: Message):
 # Этот хэндлер будет срабатывать на команду "/list"
 @router.message(Command(commands='list'), StateFilter(default_state))
 async def process_list_command(message: Message):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
         if user["user_id"] == message.from_user.id:
@@ -62,7 +62,7 @@ async def process_fillform_command(message: Message, state: FSMContext):
 
 @router.message(StateFilter(FSMFillForm.show_word))
 async def process_name_sent(message: Message, state: FSMContext):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
             if user["user_id"] == message.from_user.id:
@@ -87,7 +87,7 @@ async def process_fillform_command(message: Message):
 @router.message(Command(commands='add'), StateFilter(default_state))
 async def process_fillform_command(message: Message, state: FSMContext):
     await message.answer(text='Please, write down your word or phrase')
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
         if user["user_id"] == message.from_user.id:
@@ -97,7 +97,7 @@ async def process_fillform_command(message: Message, state: FSMContext):
 
 @router.message(StateFilter(FSMFillForm.add_word), lambda x: x.text.replace(' ', '').isalpha())
 async def process_name_sent(message: Message, state: FSMContext):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
             if user["user_id"] == message.from_user.id:
@@ -118,13 +118,13 @@ async def process_name_sent(message: Message):
 
 @router.message(StateFilter(FSMFillForm.add_using), lambda x: x.text.replace(' ', '').isalpha())
 async def process_name_sent(message: Message, state: FSMContext):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
         for user in data:
             if user["user_id"] == message.from_user.id:
                 data_dict = await state.get_data()
                 user["voc"][data_dict['word']] = [message.text, 0]
-                with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                with open('data/users_data.json', 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2)
     await message.answer(text='Saved!')
     await state.clear()
@@ -145,13 +145,13 @@ async def process_fillform_command(message: Message, state: FSMContext):
 
 @router.message(StateFilter(FSMFillForm.delete_word), lambda x: x.text.replace(' ', '').isalpha())
 async def process_name_sent(message: Message, state: FSMContext):
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
         for user in data:
             if user["user_id"] == message.from_user.id:
                 if message.text in user["voc"].keys():
                     del user["voc"][message.text]
-                    with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                    with open('data/users_data.json', 'w', encoding='utf-8') as f:
                         json.dump(data, f, indent=2)
                     await message.answer(text='Deleted!')
                 else:
@@ -190,13 +190,13 @@ async def process_quit_command_state(message: Message, state: FSMContext):
 @router.message(Command(commands='rembo'), StateFilter(default_state))
 async def process_rembo_answer(message: Message, state: FSMContext):
     global CURRENT_WORD_ID
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
         if user["user_id"] == message.from_user.id:
             user["voc"] = dict(sorted(user["voc"].items(), reverse=True, key=lambda x: x[1][-1]))
             words = list(user["voc"].keys())
-            with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+            with open('data/users_data.json', 'w', encoding='utf-8') as f:
                         json.dump(data, f, indent=2)
     await message.answer('Hey! Let us start the quiz!')
     CURRENT_WORD_ID = -1
@@ -209,7 +209,7 @@ async def process_rembo_answer(message: Message, state: FSMContext):
 @router.message(StateFilter(FSMFillForm.in_quiz), lambda x: x.text and x.text in ['yes', 'no', 'finish'])
 async def process_numbers_answer(message: Message, state: FSMContext):
     global CURRENT_WORD_ID
-    with open('tg_bot_tamplate/data/users_data.json') as file:
+    with open('data/users_data.json') as file:
         data = json.load(file)
     for user in data:
         if user["user_id"] == message.from_user.id:
@@ -218,7 +218,7 @@ async def process_numbers_answer(message: Message, state: FSMContext):
                 if abs(CURRENT_WORD_ID) < len(words):
                     user["voc"][words[CURRENT_WORD_ID]][-1] += 1
                     CURRENT_WORD_ID -= 1
-                    with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                    with open('data/users_data.json', 'w', encoding='utf-8') as f:
                             json.dump(data, f, indent=2)
                     await message.answer(text=f"{words[CURRENT_WORD_ID]}", reply_markup=yes_no_quit_keyboard)
                 else:
@@ -228,7 +228,7 @@ async def process_numbers_answer(message: Message, state: FSMContext):
                 if abs(CURRENT_WORD_ID) < len(words):
                     user["voc"][words[CURRENT_WORD_ID]][-1] -= 1
                     CURRENT_WORD_ID -= 1
-                    with open('tg_bot_tamplate/data/users_data.json', 'w', encoding='utf-8') as f:
+                    with open('data/users_data.json', 'w', encoding='utf-8') as f:
                             json.dump(data, f, indent=2)
                     await message.answer(text=f"{words[CURRENT_WORD_ID]}", reply_markup=yes_no_quit_keyboard)
                 else:
